@@ -1,9 +1,33 @@
-﻿<!DOCTYPE html>
-<html>
-    <head>
-        <title>Mega Escritorio-Web</title>
-    </head>
-    <body>
+﻿@{
+    Layout = "~/Shared/_LayoutPage1.cshtml";
 
-    </body>
-</html>
+    PageData["ShowForm"] = false;
+
+    if (IsPost)
+    {
+        if (Request.Form["form"] == "on")
+        {
+            PageData["ShowForm"] = true;
+        }
+    }
+}
+
+<h1>Mega Escritorio</h1>
+<p>Welcome to Mega Escritorio. We specialize in creating expertly crafted, customized desks. Order yours today</p>
+@if (PageData["ShowForm"] == false)
+{
+    <form method="post" action="">
+        <input type="hidden" name="form" value="on" />
+        <input type="submit" value="Enter New Order" />
+    </form>
+}
+else
+{
+    <div>
+        @RenderPage("~/Shared/_newOrderForm.cshtml")
+    </div>
+    <form method="post" action="">
+        <input type="hidden" name="form" value="off" />
+        <input type="submit" value="Hide Form" />
+    </form>
+}

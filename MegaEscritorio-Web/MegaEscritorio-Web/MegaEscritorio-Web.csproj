@@ -123,6 +123,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Index.cshtml" />
+    <Content Include="Shared\_Header.cshtml" />
+    <Content Include="Shared\_Footer.cshtml" />
+    <Content Include="Shared\_LayoutPage1.cshtml" />
+    <Content Include="Shared\_newOrderForm.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -131,10 +135,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Styles\Site.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
