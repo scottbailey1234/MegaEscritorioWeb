@@ -1,33 +1,102 @@
 ﻿@{
     Layout = "~/Shared/_LayoutPage1.cshtml";
 
-    PageData["ShowForm"] = false;
+    var db = Database.Open("MegaEscritorioDB");
+    var selectCommand = "SELECT customer_name AS Customer, width AS Width, length AS Length, material_name AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days] FROM orders LEFT JOIN materials ON orders.material = materials.id";
+
+    var searchTermCustomer = "";
+    var selectedData = db.Query(selectCommand, searchTermCustomer);
+    var grid = new WebGrid(source: selectedData, rowsPerPage: 5);
+
+    /* On Post */
+    var customer = "";
+    var width = "";
+    var length = "";
+    var materialDescription = "";
+    var selectMaterialCmd = "SELECT id FROM materials WHERE material_description = @0";
+    var drawers = "";
+    var rushDays = "";
 
     if (IsPost)
     {
-        if (Request.Form["form"] == "on")
-        {
-            PageData["ShowForm"] = true;
-        }
+        customer = Request.Form["customer"];
+        width = Request.Form["width"];
+        length = Request.Form["length"];
+        materialDescription = Request.Form["material"];
+        var selectedMaterial = db.Query(selectMaterialCmd, materialDescription);
+        drawers = Request.Form["drawers"];
+        rushDays = Request.Form["rushDays"];
+
+        var comInsert = "INSERT INTO orders (customer_name, width, length, material, num_drawers, rush_order_days) VALUES(@0, @1, @2, @3, @4, @5)";
+        db.Execute(comInsert, customer, width, length, 1, drawers, rushDays);
+        Response.Redirect("~/index");
+    }
+    else
+    {
+        //submitForm = true;
     }
 }
 
 <h1>Mega Escritorio</h1>
 <p>Welcome to Mega Escritorio. We specialize in creating expertly crafted, customized desks. Order yours today</p>
-@if (PageData["ShowForm"] == false)
-{
-    <form method="post" action="">
-        <input type="hidden" name="form" value="on" />
-        <input type="submit" value="Enter New Order" />
-    </form>
-}
-else
-{
-    <div>
-        @RenderPage("~/Shared/_newOrderForm.cshtml")
-    </div>
-    <form method="post" action="">
-        <input type="hidden" name="form" value="off" />
-        <input type="submit" value="Hide Form" />
-    </form>
-}
+<h1>New Order </h1>
+
+    <form name="newOrder" method="post">
+        <fieldset>
+            <legend>Enter a Order Information</legend>
+            <label>Name: </label>
+            <input name="customer" type="text" /> <br />
+            <h3>Desk Dimensions</h3>
+            <label>Width: </label>
+            <input name="width" type="text" />
+            <label>Length: </label>
+            <input name="length" type="text" />
+            <h3>Desk Specifications</h3>
+            <label>Material: </label> <br />
+            <select name="material">
+                <option>Oak - $200.00</option>
+                <option>Laminate - $100.00</option>
+                <option>Pine - $50.00</option>
+                <option>Marble - $275.00</option>
+                <option>Cedar - $150.00</option>
+                <option>Aluminum - $120.00</option>
+            </select>
+            <label>Drawers - $50.00 each</label>
+            <select name="drawers">
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+            </select>
+            <br />
+            <label>Would you like your desk to crafted sooner at an extra charge? Please select how soon you want your desk to be done. <br /> If you dont want it rushed please select 0 days</label> <br />
+            <input name="rushDays" type="radio" value="0" checked /> 0 Days
+            <input name="rushDays" type="radio" value="3" /> 3 Days
+            <input name="rushDays" type="radio" value="5" /> 5 Days
+            <input name="rushDays" type="radio" value="7" /> 7 days
+
+            <br /><input type="submit" value="Submit Order" />
+       </fieldset>
+</form>
+
+<input type="text" value="@Request.QueryString["material"]"/>
+
+<div name="grid">
+    @grid.GetHtml(
+                    tableStyle: "grid",
+                    headerStyle: "head",
+                    alternatingRowStyle: "alt",
+                    columns: grid.Columns
+                        ( grid.Column("Customer")
+                        , grid.Column("Width")
+                        , grid.Column("Length")
+                        , grid.Column("Material")
+                        , grid.Column("Drawers")
+                        , grid.Column("Rush Days"))
+                )
+</div>
+

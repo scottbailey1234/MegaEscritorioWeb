@@ -1,17 +1,14 @@
-﻿<form name="newOrder">
-    <label>Width: </label>
-    <input name="width" type="text" />
-    <label>Length: </label>
-    <input name="width" type="text" />
-    <label>Material: </label>
-    <select>
-        <option>Oak</option>
-        <option>Laminate</option>
-        <option>Pine</option>
-        <option>Marble</option>
-        <option>Cedar</option>
-        <option>Aluminum</option>
-    </select>
-
-    <input type="submit" value="Submit Order"/>
-</form>
+﻿<div name="grid">
+    @grid.GetHtml(
+                    tableStyle: "grid",
+                    headerStyle: "head",
+                    alternatingRowStyle: "alt",
+                    columns: grid.Columns
+                        (grid.Column("Customer")
+                        , grid.Column("Width")
+                        , grid.Column("Length")
+                        , grid.Column("Material")
+                        , grid.Column("Drawers")
+                        , grid.Column("Rush Days"))
+                )
+</div>
