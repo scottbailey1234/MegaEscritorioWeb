@@ -2,7 +2,7 @@
     Layout = "~/Shared/_LayoutPage1.cshtml";
 
     var db = Database.Open("MegaEscritorioDB");
-    var selectCommand = "SELECT created AS Created, customer_name AS Customer, width AS Width, length AS Length, material AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days], total_price AS [Total Price] FROM orders";
+    var selectCommand = "SELECT id, created AS Created, customer_name AS Customer, width AS Width, length AS Length, material AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days], total_price AS [Total Price] FROM orders";
 
     var searchTermCustomer = "";
 
@@ -199,8 +199,8 @@
                         , grid.Column("Drawers")
                         , grid.Column("Rush Days")
                         , grid.Column("Total Price")
-                        , grid.Column(format: @<a href="~/editDesk.cshtml">Edit</a>)
-                        , grid.Column(format: @<a href="~/deleteDesk.cshtml">Delete</a>)))
+                        , grid.Column(format: @<a href="~/editDesk.cshtml?id=@item.id">Edit</a>)
+                        , grid.Column(format: @<a href="~/deleteDesk.cshtml?id=@item.id">Delete</a>)))
 </div>
 
 <form method="get">
