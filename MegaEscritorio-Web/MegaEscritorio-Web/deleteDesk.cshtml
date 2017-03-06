@@ -1,0 +1,79 @@
+﻿@{
+    Layout = "~/Shared/_LayoutPage1.cshtml";
+    Page.Title = "Delete Order";
+
+    var customer = "";
+    var width = "";
+    var length = "";
+    var material = "";
+    var drawers = "";
+    var rushDays = "";
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["ID"].IsEmpty() && Request.QueryString["ID"].IsInt())
+        {
+            customer = Request.QueryString["Id"];
+            var db = Database.Open("MegaEscritorioDB");
+            var dbCommand = "SELECT * FROM order WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, customer);
+
+            if (row != null)
+            {
+                width = row.width;
+                length = row.length;
+                material = row.material;
+                drawers = row.num_drawers;
+                rushDays = row.rush_order_days;
+            }
+            else
+            {
+                Validation.AddFormError("You need to select an desk to delete.");
+            }
+        }
+        else
+        {
+            Validation.AddFormError("You need to select an desk to delete");
+        }
+    }
+
+    if (IsPost && !Request["buttonDelete"].IsEmpty())
+    {
+        customer = Request.Form["customer"];
+        var db = Database.Open("MegaEscritorioDB");
+        var deleteCommand = "DELETE FROM order WHERE ID = @0";
+        db.Execute(deleteCommand, customer);
+        Response.Redirect("~/pages/Index.cshtml");
+    }
+}
+<h2>Delete Desk</h2>
+@Html.ValidationSummary()
+<p><a href="~/pages/Index.cshtml">Return to Order Home</a></p>
+<form method="post">
+    <fieldset>
+        <legend>Desk Details</legend>
+        <p class="block">
+            @Html.Label("Width:")
+            <span>@width</span>
+        </p>
+        <p class="block">
+            @Html.Label("Length:")
+            <span>@length</span>
+        </p>
+        <p class="block">
+            @Html.Label("Material:")
+            <span>@material</span>
+        </p>
+        <p class="block">
+            @Html.Label("Drawers:")
+            <span>@drawers</span>
+        </p>
+        <p class="block">
+            @Html.Label("Delivery Days:")
+            <span>@rushDays</span>
+        </p>
+        <input type="hidden" name="customer" value="@customer" />
+        <p><input type="submit" name="buttonDelete" value="Delete Desk" /></p>
+    </fieldset>
+    <p><a href="~/pages/Index.cshtml">Return to Order Home</a></p>
+</form>

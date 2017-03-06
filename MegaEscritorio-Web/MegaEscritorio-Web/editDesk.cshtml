@@ -1,0 +1,114 @@
+﻿@{
+    Layout = "~/Shared/_LayoutPage1.cshtml";
+    Page.Title = "Edit Desk Order";
+
+    var customer = "";
+    var width = "";
+    var length = "";
+    var material = "";
+    var drawers = "";
+    var rushDays = "";
+
+    if (!IsPost)
+    {
+        if (!Request.QueryString["id"].IsEmpty() && Request.QueryString["id"].IsInt())
+        {
+            customer = Request.QueryString["id"];
+            var db = Database.Open("MegaEscritorioDB");
+            var dbCommand = "SELECT * FROM order WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, customer);
+
+            if (row != null)
+            {
+                width = row.width;
+                length = row.length;
+                material = row.material;
+                drawers = row.num_drawers;
+                rushDays = row.rush_order_days;
+            }
+            else
+            {
+                Validation.AddFormError("You need to select an desk to edit.");
+            }
+        }
+        else
+        {
+            Validation.AddFormError("You need to select a desk to edit.");
+        }
+    }
+
+    if (IsPost)
+    {
+        Validation.RequireField("width", "You must enter the width.");
+        Validation.RequireField("length", "You must enter the length.");
+        Validation.RequireField("material", "You must select a material.");
+        Validation.RequireField("drawers", "You must select the number of drawers.");
+        Validation.RequireField("rushDays", "You must select the number of days for delivery.");
+
+        width = Request.Form["width"];
+        length = Request.Form["length"];
+        material = Request.Form["material"];
+        drawers = Request.Form["num_drawers"];
+        rushDays = Request.Form["rush_order_days"];
+
+        if (Validation.IsValid())
+        {
+            var db = Database.Open("MegaEscritorioDB");
+            var updateCommand = "UPDATE order SET width=@0, length=@1, material=@2, num_drawers=@3, rush_order_days=@4 WHERE Id=@5";
+            db.Execute(updateCommand, width, length, material, drawers, rushDays);
+            Response.Redirect("~/pages/Index.cshtml");
+        }
+    }
+}
+
+    <h2>Edit your Desk</h2>
+    <form name="editDesk" method="post">
+        @Html.ValidationSummary()
+        <fieldset>
+            <legend>Desk Details</legend>
+            @Html.Label("Width:")
+            @Html.TextBox("Width", value: @width)
+            @Html.ValidationMessage("width")
+
+            @Html.Label("Length:")
+            @Html.TextBox("Length", value: @length)
+            @Html.ValidationMessage("length")
+
+            @Html.Label("Material:")
+            <select name="material">
+                <option>Oak - $200.00</option>
+                <option>Laminate - $100.00</option>
+                <option>Pine - $50.00</option>
+                <option>Marble - $275.00</option>
+                <option>Cedar - $150.00</option>
+                <option>Aluminum - $120.00</option>
+            </select>
+            @Html.ValidationMessage("material")
+
+            @Html.Label("Drawers:")
+            <select name="drawers">
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+            </select>
+            @Html.ValidationMessage("drawers")
+            <br />
+            @Html.Label("Delivery Days:")
+            <label>Would you like your desk to crafted sooner at an extra charge? Please select how soon you want your desk to be done. <br /> If you dont want it rushed please select 0 days.</label> <br />
+            <input name="rushDays" type="radio" value="0" checked /> 0 Days
+            <input name="rushDays" type="radio" value="3" /> 3 Days
+            <input name="rushDays" type="radio" value="5" /> 5 Days
+            <input name="rushDays" type="radio" value="7" /> 7 days
+            @Html.ValidationMessage("rushDays")
+
+
+            <input type="hidden" name="customer" value="@customer" />
+            <p><input type="submit" name="buttonSubmit" value="Submit" /></p>
+        </fieldset>
+    </form>
+

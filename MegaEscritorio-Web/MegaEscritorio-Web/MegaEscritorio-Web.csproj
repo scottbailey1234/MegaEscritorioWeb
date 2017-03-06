@@ -133,12 +133,15 @@
     <Content Include="Shared\_Footer.cshtml" />
     <Content Include="Shared\_LayoutPage1.cshtml" />
     <Content Include="Shared\_newOrderForm.cshtml" />
+    <Content Include="deleteDesk.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+    <Content Include="editDesk.cshtml" />
+    <Content Include="WebPage1.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Styles\Site.css" />
@@ -149,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Images\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -15,6 +15,11 @@
     var selectedData = db.Query(selectCommand, searchTermCustomer);
     var grid = new WebGrid(source: selectedData, rowsPerPage: 5);
 
+    var imagePath = "";
+    if (Request["material"] != null)
+    {
+        imagePath = @"Images\" + Request["material"];
+    }
     //var selectMaterial = db.Query("SELECT id, material_description FROM materials");
     //var list = selectMaterial.ToList();
     //var listItemFirst = list[0];
@@ -47,22 +52,22 @@
 
         switch (materialDescription)
         {
-            case "Oak - $200.00":
+            case "oak.jpg":
                 material = "Oak";
                 break;
-            case "Laminate - $100.00":
+            case "laminate.jpg":
                 material = "Laminate";
                 break;
-            case "Pine - $50.00":
+            case "pine.jpg":
                 material = "Pine";
                 break;
-            case "Marble - $275.00":
+            case "marble.jpg":
                 material = "Marble";
                 break;
-            case "Cedar - $150.00":
+            case "cedar.jpg":
                 material = "Cedar";
                 break;
-            case "Aluminum - $120.00":
+            case "aluminum.jpg":
                 material = "Aluminum";
                 break;
         }
@@ -72,9 +77,14 @@
 
         //DynamicRecord indexId = selectedMaterial.FirstOrDefault();
         // var columnValue = indexId;
+
         // Calculate cost per number of drawers.
-        // Drawers are 50 dollars each
         double orderTotal = 200;
+        // Drawers are 50 dollars each
+        if (area > 1000)
+        {
+            orderTotal += (area - 1000) * 5;
+        }
 
         if (drawers.AsInt() >= 1)
         {
@@ -82,24 +92,24 @@
         }
 
         // Calculate desk material cost
-        switch (material.ToLower())
+        switch (material)
         {
-            case "oak":
+            case "Oak":
                 orderTotal += 200.00;
                 break;
-            case "laminate":
+            case "Laminate":
                 orderTotal += 100.00;
                 break;
-            case "pine":
+            case "Pine":
                 orderTotal += 50.00;
                 break;
-            case "marble":
+            case "Marble":
                 orderTotal += 275.00;
                 break;
-            case "cedar":
+            case "Cedar":
                 orderTotal += 150.00;
                 break;
-            case "aluminum":
+            case "Aluminum":
                 orderTotal += 120.00;
                 break;
         }
@@ -127,24 +137,32 @@
         <fieldset>
             <legend>Enter Order Information</legend>
             <label>Name: </label>
-            <input name="customer" type="text" /> <br />
+            <input name="customer" type="text" value="@Request.QueryString["customer"]" /> <br />
             <h3>Desk Dimensions</h3>
             <label>Width: </label>
-            <input name="width" type="text" />
+            <input name="width" value="@Request.QueryString["width"]" type="text" />
             <label>Length: </label>
-            <input name="length" type="text" />
+            <input name="length" value="@Request.QueryString["length"]" type="text" />
             <h3>Desk Specifications</h3>
             <label>Material: </label> <br />
-
            <!--Html.DropDownList("Test",listItem, new { class = "form-control"})-->
-            <select name="material">
-                <option>Oak - $200.00</option>
-                <option>Laminate - $100.00</option>
-                <option>Pine - $50.00</option>
-                <option>Marble - $275.00</option>
-                <option>Cedar - $150.00</option>
-                <option>Aluminum - $120.00</option>
+            <select id="materialOption" name="material">
+                <option value="oak.jpg">Oak - $200.00</option>
+                <option value="laminate.jpg">Laminate - $100.00</option>
+                <option value="pine.jpg">Pine - $50.00</option>
+                <option value="marble.jpg">Marble - $275.00</option>
+                <option value="cedar.jpg">Cedar - $150.00</option>
+                <option value="aluminum.jpg">Aluminum - $120.00</option>
             </select>
+
+            <button formmethod="get">Show Preview</button>
+            <div style="padding:10px;">
+                @if (imagePath != "")
+                {
+                    <img src="@imagePath" alt="Image of Material" width="100px" />
+                }
+            </div>
+ 
             <label>Drawers - $50.00 each</label>
             <select name="drawers">
                 <option>0</option>
@@ -157,7 +175,7 @@
                 <option>7</option>
             </select>
             <br />
-            <label>Would you like your desk to crafted sooner at an extra charge? Please select how soon you want your desk to be done. <br /> If you dont want it rushed please select 0 days</label> <br />
+            <label>Would you like your desk to be crafted sooner at an extra charge? Please select how soon you want your desk to be done. <br /> If you dont want it rushed please select 0 days</label> <br />
             <input name="rushDays" type="radio" value="0" checked /> 0 Days
             <input name="rushDays" type="radio" value="3" /> 3 Days
             <input name="rushDays" type="radio" value="5" /> 5 Days
@@ -172,8 +190,8 @@
                     tableStyle: "grid",
                     headerStyle: "head",
                     alternatingRowStyle: "alt",
-                    columns: grid.Columns
-                        ( grid.Column("Created")
+                    columns: grid.Columns (
+                        grid.Column("Created")
                         , grid.Column("Customer")
                         , grid.Column("Width")
                         , grid.Column("Length")
@@ -181,7 +199,8 @@
                         , grid.Column("Drawers")
                         , grid.Column("Rush Days")
                         , grid.Column("Total Price")
-                ))
+                        , grid.Column(format: @<a href="~/editDesk.cshtml">Edit</a>)
+                        , grid.Column(format: @<a href="~/deleteDesk.cshtml">Delete</a>)))
 </div>
 
 <form method="get">
