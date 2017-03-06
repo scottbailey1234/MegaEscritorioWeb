@@ -2,18 +2,38 @@
     Layout = "~/Shared/_LayoutPage1.cshtml";
 
     var db = Database.Open("MegaEscritorioDB");
-    var selectCommand = "SELECT customer_name AS Customer, width AS Width, length AS Length, material_name AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days] FROM orders LEFT JOIN materials ON orders.material = materials.id";
+    var selectCommand = "SELECT created AS Created, customer_name AS Customer, width AS Width, length AS Length, material AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days], total_price AS [Total Price] FROM orders";
 
     var searchTermCustomer = "";
+
+    if (!Request.QueryString["searchCustomer"].IsEmpty())
+    {
+        searchTermCustomer = "%" + Request.QueryString["searchCustomer"] + "%";
+        selectCommand = "SELECT created AS Created, customer_name AS Customer, width AS Width, length AS Length, material AS Material, num_drawers AS Drawers, rush_order_days AS [Rush Days], total_price AS [Total Price] FROM orders WHERE customer_name LIKE @0";
+    }
+
     var selectedData = db.Query(selectCommand, searchTermCustomer);
     var grid = new WebGrid(source: selectedData, rowsPerPage: 5);
+
+    //var selectMaterial = db.Query("SELECT id, material_description FROM materials");
+    //var list = selectMaterial.ToList();
+    //var listItemFirst = list[0];
+
+    //List<SelectListItem> listItem = new List<SelectListItem>();
+
+    /*
+    listItem.Add(new SelectListItem
+    {
+        Text = list[0],
+        Value = "2"
+    });*/
 
     /* On Post */
     var customer = "";
     var width = "";
     var length = "";
     var materialDescription = "";
-    var selectMaterialCmd = "SELECT id FROM materials WHERE material_description = @0";
+    var material = "";
     var drawers = "";
     var rushDays = "";
 
@@ -22,18 +42,80 @@
         customer = Request.Form["customer"];
         width = Request.Form["width"];
         length = Request.Form["length"];
+        var area = width.AsFloat() * length.AsFloat();
         materialDescription = Request.Form["material"];
-        var selectedMaterial = db.Query(selectMaterialCmd, materialDescription);
+
+        switch (materialDescription)
+        {
+            case "Oak - $200.00":
+                material = "Oak";
+                break;
+            case "Laminate - $100.00":
+                material = "Laminate";
+                break;
+            case "Pine - $50.00":
+                material = "Pine";
+                break;
+            case "Marble - $275.00":
+                material = "Marble";
+                break;
+            case "Cedar - $150.00":
+                material = "Cedar";
+                break;
+            case "Aluminum - $120.00":
+                material = "Aluminum";
+                break;
+        }
         drawers = Request.Form["drawers"];
         rushDays = Request.Form["rushDays"];
+        int rushDaysInt = rushDays.AsInt();
 
-        var comInsert = "INSERT INTO orders (customer_name, width, length, material, num_drawers, rush_order_days) VALUES(@0, @1, @2, @3, @4, @5)";
-        db.Execute(comInsert, customer, width, length, 1, drawers, rushDays);
+        //DynamicRecord indexId = selectedMaterial.FirstOrDefault();
+        // var columnValue = indexId;
+        // Calculate cost per number of drawers.
+        // Drawers are 50 dollars each
+        double orderTotal = 200;
+
+        if (drawers.AsInt() >= 1)
+        {
+            orderTotal += drawers.AsInt() * 50.00;
+        }
+
+        // Calculate desk material cost
+        switch (material.ToLower())
+        {
+            case "oak":
+                orderTotal += 200.00;
+                break;
+            case "laminate":
+                orderTotal += 100.00;
+                break;
+            case "pine":
+                orderTotal += 50.00;
+                break;
+            case "marble":
+                orderTotal += 275.00;
+                break;
+            case "cedar":
+                orderTotal += 150.00;
+                break;
+            case "aluminum":
+                orderTotal += 120.00;
+                break;
+        }
+
+        // Query database for order charge price
+        if (rushDays.AsInt() != 0)
+        {
+            var select = "SELECT rush_price FROM rush_prices WHERE (@0 > min_size) AND ((@0 <= max_size) OR (max_size IS NULL)) AND (rush_days = @1)";
+            var orderCharge = db.QueryValue(select, area, rushDaysInt);
+            orderTotal += orderCharge;
+        }
+
+        var dateAdded = DateTime.Now;
+        var comInsert = "INSERT INTO orders(created, customer_name, width, length, material, num_drawers, rush_order_days, total_price) VALUES(@0, @1, @2, @3, @4, @5, @6, @7)";
+        db.Execute(comInsert, dateAdded, customer, width, length, material, drawers, rushDays, orderTotal);
         Response.Redirect("~/index");
-    }
-    else
-    {
-        //submitForm = true;
     }
 }
 
@@ -43,7 +125,7 @@
 
     <form name="newOrder" method="post">
         <fieldset>
-            <legend>Enter a Order Information</legend>
+            <legend>Enter Order Information</legend>
             <label>Name: </label>
             <input name="customer" type="text" /> <br />
             <h3>Desk Dimensions</h3>
@@ -53,6 +135,8 @@
             <input name="length" type="text" />
             <h3>Desk Specifications</h3>
             <label>Material: </label> <br />
+
+           <!--Html.DropDownList("Test",listItem, new { class = "form-control"})-->
             <select name="material">
                 <option>Oak - $200.00</option>
                 <option>Laminate - $100.00</option>
@@ -83,20 +167,28 @@
        </fieldset>
 </form>
 
-<input type="text" value="@Request.QueryString["material"]"/>
-
 <div name="grid">
     @grid.GetHtml(
                     tableStyle: "grid",
                     headerStyle: "head",
                     alternatingRowStyle: "alt",
                     columns: grid.Columns
-                        ( grid.Column("Customer")
+                        ( grid.Column("Created")
+                        , grid.Column("Customer")
                         , grid.Column("Width")
                         , grid.Column("Length")
                         , grid.Column("Material")
                         , grid.Column("Drawers")
-                        , grid.Column("Rush Days"))
-                )
+                        , grid.Column("Rush Days")
+                        , grid.Column("Total Price")
+                ))
 </div>
+
+<form method="get">
+    <div>
+        <label class="labelsearch" for="searchCustomer">Search by Customer Name</label>
+        <input type="text" name="searchCustomer" value="@Request.QueryString["searchCustomer"]" />
+        <input class="submitbutton" type="submit" value="Search" />
+    </div>
+</form>
 
